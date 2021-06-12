@@ -1,0 +1,54 @@
+apply plugin: "java"
+
+version '1.0'
+
+sourceCompatibility = 1.8
+
+sourceSets.main.java.srcDirs = ["src"]
+
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+repositories {
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+}
+
+ext {
+    //the build number that this plugin is made for
+    mindustryVersion = 'v126.2'
+    steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
+}
+
+dependencies {
+    compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
+    compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
+    implementation "com.github.Anuken:steamworks4j:$steamworksVersion"
+}
+
+jar {
+    archiveFileName = "${project.archivesBaseName}.jar"
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    from(rootDir) {
+        include "plugin.json"
+    }
+}
+
+task run(dependsOn: jar, type: JavaExec) {
+    classpath = layout.buildDirectory.files("build/run/server-release.jar")
+    workingDir = layout.buildDirectory.dir("run")
+    standardInput = System.in
+    args "host"
+
+    copy {
+        from {
+            layout.buildDirectory.dir("libs/${project.archivesBaseName}.jar")
+        }
+        into {
+            layout.buildDirectory.dir("run/config/mods")
+        }
+    }
+}
