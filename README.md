@@ -1,24 +1,19 @@
+## MDTSteamLobbyPlugin
+
+Mindustry Steam Lobby Plugin
+
+### What is this SHIT
+
+You can host a server showing the steam local server list.
+
+All the traffic will go through steam p2p network , so you don't need to have a public ip, but you need a extra steam account for server use.
+
 ### Setup
 
-Clone this repository first.
-To edit the plugin display name and other data, take a look at `plugin.json`.
-Edit the name of the project itself by going into `settings.gradle`.
+1. Install steam client and login.
+2. Create a file name `steam_appid.txt` with content `1127400` next to `server-release.jar`.
+3. Place the `MDTSteamLobbyPlugin.jar` in your server's `config/mods` directory and restart the server.
 
-### Basic Usage
+### Known Problem
 
-See `src/example/ExamplePlugin.java` for some basic commands and event handlers.  
-Every main plugin class must extend `Plugin`. Make sure that `plugin.json` points to the correct main plugin class.
-
-Please note that the plugin system is in beta, and as such is subject to changes.
-
-### Building a Jar
-
-`gradlew jar` / `./gradlew jar`
-
-Output jar should be in `build/libs`.
-
-
-### Installing
-
-Simply place the output jar from the step above in your server's `config/mods` directory and restart the server.
-List your currently installed plugins/mods by running the `mods` command.
+We only tested on Windows . If you success in other system , please info me.
