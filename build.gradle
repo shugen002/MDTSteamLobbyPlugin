@@ -16,14 +16,13 @@ repositories {
 
 ext {
     //the build number that this plugin is made for
-    mindustryVersion = 'v126.2'
-    steamworksVersion = '891ed912791e01fe9ee6237a6497e5212b85c256'
+    mindustryVersion = 'v127'
 }
 
 dependencies {
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    implementation "com.github.Anuken:steamworks4j:$steamworksVersion"
+    compile "com.code-disaster.steamworks4j:steamworks4j:1.8.0"
 }
 
 jar {

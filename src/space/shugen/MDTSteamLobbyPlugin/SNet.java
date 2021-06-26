@@ -20,14 +20,15 @@ import mindustry.net.Administration;
 import mindustry.net.ArcNetProvider.PacketSerializer;
 import mindustry.net.Host;
 import mindustry.net.Net.NetProvider;
-import mindustry.net.Net.SendMode;
 import mindustry.net.NetConnection;
+import mindustry.net.Packet;
 import mindustry.net.Packets.Connect;
 import mindustry.net.Packets.Disconnect;
 import mindustry.net.Packets.StreamChunk;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static mindustry.Vars.net;
@@ -69,12 +70,17 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                         int fromID = from.getAccountID();
                         Object output = serializer.read(readBuffer);
 
+                        //it may be theoretically possible for this to be a framework message, if the packet is malicious or corrupted
+                        if(!(output instanceof Packet)) return;
+
+                        Packet pack = (Packet)output;
+
                         if (net.server()) {
                             SteamConnection con = steamConnections.get(fromID);
                             try {
                                 //accept users on request
                                 if (con == null) {
-                                    con = new SteamConnection(SteamID.createFromNativeHandle(from.handle()));
+                                    con = new SteamConnection(from);
                                     Connect c = new Connect();
                                     c.addressTCP = "steam:" + from.getAccountID();
 
@@ -85,13 +91,13 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                                     net.handleServerReceived(con, c);
                                 }
 
-                                net.handleServerReceived(con, output);
+                                net.handleServerReceived(con, pack);
                             } catch (Throwable e) {
                                 Log.err(e);
                             }
                         } else if (currentServer != null && fromID == currentServer.getAccountID()) {
                             try {
-                                net.handleClientReceived(output);
+                                net.handleClientReceived(pack);
                             } catch (Throwable t) {
                                 net.handleException(t);
                             }
@@ -131,27 +137,26 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     }
 
     @Override
-    public void sendClient(Object object, SendMode mode) {
-        if (isSteamClient()) {
-            if (currentServer == null) {
+    public void sendClient(Object object, boolean reliable){
+        if(isSteamClient()){
+            if(currentServer == null){
                 Log.info("Not connected, quitting.");
                 return;
             }
 
-            try {
+            try{
                 writeBuffer.limit(writeBuffer.capacity());
                 writeBuffer.position(0);
                 serializer.write(writeBuffer, object);
                 int length = writeBuffer.position();
                 writeBuffer.flip();
 
-                snet.sendP2PPacket(currentServer, writeBuffer, mode == SendMode.tcp || length >= 1200 ? P2PSend.Reliable : P2PSend.UnreliableNoDelay, 0);
-            } catch (Exception e) {
+                snet.sendP2PPacket(currentServer, writeBuffer, reliable || length >= 1200 ? P2PSend.Reliable : P2PSend.UnreliableNoDelay, 0);
+            }catch(Exception e){
                 net.showError(e);
             }
-            Pools.free(object);
-        } else {
-            provider.sendClient(object, mode);
+        }else{
+            provider.sendClient(object, reliable);
         }
     }
 
@@ -179,6 +184,12 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
 
         //after the steam lobby is done discovering, look for local network servers.
         lobbyDoneCallback = () -> provider.discoverServers(callback, done);
+    }
+
+    public void getLobbyList() {
+        smat.addRequestLobbyListResultCountFilter(32);
+        smat.addRequestLobbyListDistanceFilter(SteamMatchmaking.LobbyDistanceFilter.Worldwide);
+        smat.requestLobbyList();
     }
 
     @Override
@@ -293,7 +304,13 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
     }
 
     @Override
-    public void onLobbyMatchList(int lobbiesMatching) {
+    public void onLobbyMatchList(int matches) {
+        Log.info("found @ matches @", matches, lobbyDoneCallback);
+        SteamID[] matchList = new SteamID[matches];
+        for (int i = 0; i < matches; i++) {
+            matchList[i] = smat.getLobbyByIndex(i);
+        }
+        Log.info(String.join(",", (String[]) Arrays.stream(matchList).map(SteamNativeHandle::toString).toArray()));
     }
 
     @Override
@@ -407,7 +424,7 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
         }
 
         @Override
-        public void send(Object object, SendMode mode) {
+        public void send(Object object, boolean reliable) {
             try {
                 writeBuffer.limit(writeBuffer.capacity());
                 writeBuffer.position(0);
@@ -415,7 +432,9 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                 int length = writeBuffer.position();
                 writeBuffer.flip();
 
-                snet.sendP2PPacket(sid, writeBuffer, mode == SendMode.tcp || length >= 1200 ? object instanceof StreamChunk ? P2PSend.ReliableWithBuffering : P2PSend.Reliable : P2PSend.UnreliableNoDelay, 0);
+                snet.sendP2PPacket(sid, writeBuffer,
+                        reliable  || length >= 1200 ? object instanceof StreamChunk ? P2PSend.ReliableWithBuffering : P2PSend.Reliable : P2PSend.UnreliableNoDelay,
+                        0);
             } catch (Exception e) {
                 Log.err(e);
                 Log.info("Error sending packet. Disconnecting invalid client!");

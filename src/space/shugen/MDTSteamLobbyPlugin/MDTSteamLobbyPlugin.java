@@ -149,8 +149,14 @@ public class MDTSteamLobbyPlugin extends Plugin {
      */
     @Override
     public void registerServerCommands(CommandHandler handler) {
-        handler.register("test", "test", (e) -> {
-            Log.info("1");
-        });
+//        handler.register("getlobbylist", "Get Lobby List", (e) -> {
+//            if (steam) {
+//                SVars.net.getLobbyList();
+//            }
+//        });
+//        handler.register("getsteamconnectionlist","Get Steam Connection List",(e)->{
+//            SVars.net.connections.size();
+//        });
+
     }
 }
