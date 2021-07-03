@@ -2,6 +2,11 @@
 
 Mindustry Steam Lobby Plugin
 
+for v126.2: https://github.com/shugen002/MDTSteamLobbyPlugin/releases/tag/1.0.0
+for v127.2: https://github.com/shugen002/MDTSteamLobbyPlugin/releases/tag/1.1.0
+
+Due to mindustry v127 still in active development , i may need to update plugin every time 
+
 ### What is this SHIT
 
 You can host a server showing the steam local server list.

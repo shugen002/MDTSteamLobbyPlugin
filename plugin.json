@@ -3,5 +3,5 @@
   "author": "Shugen002 (MDTSteamLobbyPlugin@shugen.space)",
   "main": "space.shugen.MDTSteamLobbyPlugin.MDTSteamLobbyPlugin",
   "description": "A plugin to demonstrate some basic features.",
-  "version": 1.0
+  "version": "1.1.0"
 }
