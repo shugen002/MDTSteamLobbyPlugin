@@ -22,7 +22,7 @@ ext {
 dependencies {
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    compile "com.code-disaster.steamworks4j:steamworks4j:1.8.0"
+    implementation "com.github.Anuken:steamworks4j:0b86023401880bb5e586bc404bedbaae9b1f1c94"
 }
 
 jar {

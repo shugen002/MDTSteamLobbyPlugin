@@ -76,16 +76,16 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                         Object output = serializer.read(readCopyBuffer);
 
                         //it may be theoretically possible for this to be a framework message, if the packet is malicious or corrupted
-                        if(!(output instanceof Packet)) return;
+                        if (!(output instanceof Packet)) return;
 
-                        Packet pack = (Packet)output;
+                        Packet pack = (Packet) output;
 
                         if (net.server()) {
                             SteamConnection con = steamConnections.get(fromID);
                             try {
                                 //accept users on request
                                 if (con == null) {
-                                    con = new SteamConnection(from);
+                                    con = new SteamConnection(SteamID.createFromNativeHandle(from.handle()));
                                     Connect c = new Connect();
                                     c.addressTCP = "steam:" + from.getAccountID();
 
@@ -107,10 +107,10 @@ public class SNet implements SteamNetworkingCallback, SteamMatchmakingCallback, 
                                 net.handleException(t);
                             }
                         }
-                    }catch(Exception e){
-                        if(net.server()){
+                    } catch (Exception e) {
+                        if (net.server()) {
                             Log.err(e);
-                        }else{
+                        } else {
                             net.showError(e);
                         }
                     }
